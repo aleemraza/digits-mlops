@@ -1,0 +1,30 @@
+name: Build and Publish image to Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile'
+      - 'requirements.txt'
+      - 'app/**'
+      - 'train_model.py'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  publish_images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build image
+        run: |
+          docker build . -t aleemraza/digits-mlops-api:latest
+          docker tag aleemraza/digits-mlops-api:latest aleemraza/digits-mlops-api:${{ github.sha }}
+      
+      - name: Push image to Docker Hub
+        run: |
+          docker login -u aleemraza -p ${{ secrets.DOCKER_HUB_TOKEN }}
+          docker push aleemraza/digits-mlops-api:latest
+          docker push aleemraza/digits-mlops-api:${{ github.sha }}
